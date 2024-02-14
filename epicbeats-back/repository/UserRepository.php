@@ -83,6 +83,50 @@ class UserRepository extends Database {
     }
 
 
+    /**
+      * Vérifie si un email est déjà utilisé par un utilisateur dans la base de données.
+      *
+      * Cette méthode exécute une requête SQL pour compter le nombre d'utilisateurs ayant l'email spécifié.
+      * Il est possible d'exclure un utilisateur spécifique de cette vérification grâce à son ID. Cela est utile,
+      * par exemple, lors de la mise à jour des informations d'un utilisateur, pour s'assurer que l'email proposé
+      * n'est utilisé que par cet utilisateur. Si aucun utilisateur n'est trouvé avec l'email spécifié (ou si l'email
+      * est trouvé mais appartient à l'utilisateur exclu), la méthode retourne false. Sinon, elle retourne true,
+      * indiquant que l'email est déjà utilisé.
+      *
+      * @param string $email L'email à vérifier dans la base de données.
+      * @param int|null $excludeUserId (Optionnel) L'ID d'un utilisateur à exclure de la vérification.
+      * @return bool True si l'email est déjà utilisé par un autre utilisateur, false sinon.
+      *
+      * @throws Exception Si une erreur de connexion à la base de données se produit,
+      * cette méthode propage une exception avec un message d'erreur adapté.
+    */
+    public function doesEmailExist(string $email, int $excludeUserId = null) : bool {
+        try {
+            $db = $this->getBdd();
+            $req = "SELECT COUNT(1) FROM users WHERE email = :email";
+
+            if ($excludeUserId !== null) {
+                $req .= " AND id != :excludeUserId";
+            }
+
+            $stmt = $db->prepare($req);
+
+            $stmt->bindValue(":email", $email, PDO::PARAM_STR);
+
+            if ($excludeUserId !== null) {
+                $stmt->bindValue(":excludeUserId", $excludeUserId, PDO::PARAM_INT);
+            }
+            $stmt->execute();
+            
+            return $stmt->fetchColumn() > 0;
+            
+        } catch (PDOException $e) {
+            $this->handleException($e, "vérification de l'existence de l'email");
+            return false;
+        }
+    }
+
+
 
 
 
