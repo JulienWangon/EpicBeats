@@ -170,4 +170,40 @@ class UserRepository extends Database {
             $this->handleException($e, "recherche de l'utilisateur");
         }
     }
+
+
+    /**
+      * Met à jour le mot de passe d'un utilisateur dans la base de données.
+      *
+      * Cette méthode réalise la mise à jour du mot de passe pour un utilisateur spécifique, identifié par son adresse email.
+      * Le nouveau mot de passe fourni doit être préalablement hashé avant d'être passé à cette méthode. La méthode retourne
+      * un booléen indiquant si la mise à jour a été effectuée avec succès (true) ou non (false). Un succès signifie ici
+      * que la requête a affecté au moins une ligne dans la table des utilisateurs, tandis qu'un échec peut indiquer que
+      * l'adresse email fournie n'existe pas dans la base de données ou que le nouveau mot de passe est identique à l'ancien.
+      *
+      * @param string $userEmail L'adresse email de l'utilisateur dont le mot de passe doit être mis à jour.
+      * @param string $hashedPassword Le nouveau mot de passe de l'utilisateur, déjà hashé.
+      * @return bool True si la mise à jour a réussi et a affecté au moins une ligne, False dans le cas contraire.
+      *
+      * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit,
+      * en fournissant un message d'erreur approprié pour le débogage.
+    */
+    public function updateUserPassword(string $userEmail, string $hashedPassword) : bool {
+        try {
+            $db = $this->getBdd();
+            $req = "UPDATE users SET password = :userPassword WHERE email = :userEmail";
+
+            $stmt = $db->prepare($req);
+
+            $stmt->bindValue(":userPassword", $hashedPassword, PDO::PARAM_STR);
+            $stmt->bindValue(":userEmail", $userEmail, PDO::PARAM_STR);
+            $stmt->execute();
+
+            return $stmt->rowCount() > 0;
+
+        } catch (PDOException $e) {
+            $this->handleException($e, "mise à jour du mot de passe de l'utilisateur");
+            return false;
+        }
+    }
 }
