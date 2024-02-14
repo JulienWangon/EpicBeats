@@ -127,7 +127,47 @@ class UserRepository extends Database {
     }
 
 
+  /**
+   * Récupère les informations détaillées d'un utilisateur par son adresse email.
+   *
+   * Cette méthode effectue une recherche dans la base de données pour trouver un utilisateur correspondant
+   * à l'adresse email spécifiée. Si un utilisateur est trouvé, elle retourne un tableau associatif contenant
+   * son ID, son mot de passe (hashé), son nom d'utilisateur, l'ID de son rôle et le nom du rôle. Si aucun utilisateur
+   * correspondant n'est trouvé, la méthode retourne null. Cette fonction est particulièrement utile pour la vérification
+   * de l'identité de l'utilisateur lors de la connexion ou pour récupérer ses informations de profil.
+   *
+   * @param string $userEmail L'adresse email de l'utilisateur à rechercher dans la base de données.
+   * @return array|null Un tableau associatif contenant les informations de l'utilisateur si trouvé,
+   *                    sinon null si aucun utilisateur correspondant n'est trouvé.
+   *
+   * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit,
+   * en fournissant un message d'erreur approprié pour le débogage.
+  */
+    public function getUserByEmail($userEmail) {
+        try {           
+            $db = $this->getBdd();
+            $req = "SELECT u.id, u.password, u.userName, u.idRole, r.name
+                    FROM users u
+                    JOIN roles r
+                    ON u.idRole = r.id
+                    WHERE email = :email";
+            $stmt = $db->prepare($req);
+            $stmt->bindValue(':email', $userEmail, PDO::PARAM_STR);
+            $stmt->execute();
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
+            if(!$user) {
+                return null;
+            }
 
-
+            return [
+                  "password" => $user["password"],
+                  "id" => $user["id"],
+                  "roleName" => $user["name"],
+                  "userName" => $user["userName"],
+            ];
+        } catch(PDOException $e) {
+            $this->handleException($e, "recherche de l'utilisateur");
+        }
+    }
 }
