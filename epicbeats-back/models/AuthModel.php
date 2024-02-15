@@ -69,33 +69,33 @@ class AuthModel extends Database {
     *                   dans le JWT décodé, ou si une autre erreur se produit lors du décodage.
   */
   public function decodeJWTFromCookie() {
-    $secretKey = $_ENV['SECRET_KEY'];
+      $secretKey = $_ENV['SECRET_KEY'];
 
-    if(!isset($_COOKIE['token'])) {
-        throw new Exception("JWT non trouvé dans le cookie");
-    }
+      if(!isset($_COOKIE['token'])) {
+          throw new Exception("JWT non trouvé dans le cookie");
+      }
 
-    try{
-        $jwt = $_COOKIE['token'];
-        $decoded = JWT::decode($jwt, new Key($secretKey, "HS256"));
+      try{
+          $jwt = $_COOKIE['token'];
+          $decoded = JWT::decode($jwt, new Key($secretKey, "HS256"));
 
-        if(!isset($decoded->id) || !isset($decoded->userName) || !isset($decoded->roleName) || !isset($decoded->csrfToken)) {
-            error_log("JWT décodé, manque de champ requis");
-            throw new Exception("Données JWT incomplètes");
-        }
+          if(!isset($decoded->id) || !isset($decoded->userName) || !isset($decoded->roleName) || !isset($decoded->csrfToken)) {
+              error_log("JWT décodé, manque de champ requis");
+              throw new Exception("Données JWT incomplètes");
+          }
 
-        return [
-            'id' => $decoded->id,
-            'userName' => $decoded->userName,
-            'roleName' => $decoded->roleName,
-            'csrfToken' => $decoded->csrfTokene
-        ];
+          return [
+              'id' => $decoded->id,
+              'userName' => $decoded->userName,
+              'roleName' => $decoded->roleName,
+              'csrfToken' => $decoded->csrfTokene
+          ];
 
-    } catch (ExpiredException $e) {
-        throw new Exception("JWT expiré");
-    } catch (Exception $e) {
-        throw new Exception("Erreur lors du décodage du JWT: " . $e->getMessage());
-    }
+      } catch (ExpiredException $e) {
+          throw new Exception("JWT expiré");
+      } catch (Exception $e) {
+          throw new Exception("Erreur lors du décodage du JWT: " . $e->getMessage());
+      }
   }
 
 
