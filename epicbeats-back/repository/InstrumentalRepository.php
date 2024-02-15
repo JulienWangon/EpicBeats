@@ -218,4 +218,56 @@ class InstrumentalRepository extends Database {
             $this->handleException($e, "suppression d'une instrumentale");
         }
     }
+
+
+    /**
+      * Met à jour les informations d'une instrumentale dans la base de données.
+      *
+      * Cette méthode prend une instance de la classe Instrumental contenant les informations mises à jour
+      * de l'instrumentale (titre, genre, BPM, chemin de la couverture, chemin du fichier sonore, et prix)
+      * et utilise son ID pour identifier l'instrumentale à mettre à jour dans la table 'instrumental'.
+      * La méthode construit une requête SQL UPDATE en utilisant les valeurs fournies et exécute cette requête.
+      * Si l'opération affecte au moins une ligne (indiquant que les informations de l'instrumentale ont été
+      * mises à jour avec succès), la méthode retourne true. Sinon, elle retourne false, indiquant qu'aucune
+      * ligne n'a été mise à jour (par exemple, si les nouvelles valeurs sont identiques aux anciennes).
+      *
+      * @param Instrumental $instrumental Une instance de la classe Instrumental contenant les informations mises à jour.
+      * @return bool True si l'opération de mise à jour a réussi et a affecté au moins une ligne, False dans le cas contraire.
+      *
+      * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit ou si la requête échoue,
+      * en fournissant un message d'erreur approprié pour le débogage. La méthode utilise `handleException`
+      * pour gérer l'exception et enregistrer les détails de l'erreur.
+    */
+    public function updateInstrumental(Instrumental $instrumental) : bool {
+        try {
+            $db = $this->getBdd();
+            $columnTable = [
+                "title = :title",
+                "gender = :gender",
+                "bpm = :bpm",
+                "cover = :coverPath", 
+                "soundPath = :soundPath",
+                "price = :price",
+                "id = :id"   
+            ];
+            
+            $req = "UPDATE instrumental SET " . implode(", ", $columnTable) . " WHERE id = :id";
+            $stmt = $db->prepare($req);
+
+            $stmt->bindValue(":title", $instrumental->getTitle(), PDO::PARAM_STR);
+            $stmt->bindValue(":gender", $instrumental->getGender(), PDO::PARAM_STR);
+            $stmt->bindValue(":bpm", $instrumental->getBpm(), PDO::PARAM_INT);
+            $stmt->bindValue(":coverPath", $instrumental->getCoverPath(), PDO::PARAM_STR);
+            $stmt->bindValue(":soundPath", $instrumental->getSoundPath(), PDO::PARAM_STR);
+            $stmt->bindValue(":price", $instrumental->getPrice(), PDO::PARAM_INT);
+            $stmt->bindValue(":id", $instrumental->getId(), PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            return $stmt->rowCount() > 0;
+
+        } catch(PDOException $e) {
+            $this->handleException($e, "mise à jour d'une instrumentale");
+        }
+    }
 }
