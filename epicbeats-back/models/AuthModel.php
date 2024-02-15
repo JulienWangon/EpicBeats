@@ -52,4 +52,51 @@ class AuthModel extends Database {
     }
 
 
+  /**
+    * Décode un JSON Web Token (JWT) stocké dans un cookie.
+    *
+    * Cette méthode lit un JWT depuis un cookie nommé 'token', puis tente de le décoder en utilisant la clé secrète
+    * définie dans la variable d'environnement 'SECRET_KEY'. Elle vérifie que le JWT décodé contient tous les champs
+    * requis, notamment l'ID de l'utilisateur, son nom d'utilisateur, le nom de son rôle et un jeton CSRF. Si le token
+    * est valide et contient toutes les informations nécessaires, ces dernières sont retournées sous forme d'un tableau
+    * associatif. Des exceptions sont levées en cas d'absence du token dans le cookie, si le JWT est expiré ou si une
+    * autre erreur survient lors du décodage.
+    *
+    * @return array Un tableau associatif contenant l'ID de l'utilisateur, son nom d'utilisateur, le nom de son rôle,
+    *               et le jeton CSRF extrait du JWT.
+    *
+    * @throws Exception Si le JWT n'est pas trouvé dans le cookie, s'il est expiré, si des champs requis sont manquants
+    *                   dans le JWT décodé, ou si une autre erreur se produit lors du décodage.
+  */
+  public function decodeJWTFromCookie() {
+    $secretKey = $_ENV['SECRET_KEY'];
+
+    if(!isset($_COOKIE['token'])) {
+        throw new Exception("JWT non trouvé dans le cookie");
+    }
+
+    try{
+        $jwt = $_COOKIE['token'];
+        $decoded = JWT::decode($jwt, new Key($secretKey, "HS256"));
+
+        if(!isset($decoded->id) || !isset($decoded->userName) || !isset($decoded->roleName) || !isset($decoded->csrfToken)) {
+            error_log("JWT décodé, manque de champ requis");
+            throw new Exception("Données JWT incomplètes");
+        }
+
+        return [
+            'id' => $decoded->id,
+            'userName' => $decoded->userName,
+            'roleName' => $decoded->roleName,
+            'csrfToken' => $decoded->csrfTokene
+        ];
+
+    } catch (ExpiredException $e) {
+        throw new Exception("JWT expiré");
+    } catch (Exception $e) {
+        throw new Exception("Erreur lors du décodage du JWT: " . $e->getMessage());
+    }
+  }
+
+
 }
