@@ -184,4 +184,38 @@ class InstrumentalRepository extends Database {
             $this->handleException($e, "Enregistrement d'une nouvelle instrumentale.");
         }
     }
+
+
+    /**
+      * Supprime une instrumentale de la base de données.
+      *
+      * Cette méthode prend en paramètre une instance de la classe Instrumental, utilise son ID pour identifier
+      * l'instrumentale à supprimer dans la table 'instrumental' de la base de données. La méthode construit et exécute
+      * une requête SQL DELETE pour réaliser cette suppression. Si au moins une ligne est affectée par l'opération
+      * (indiquant que l'instrumentale a été supprimée avec succès), la méthode retourne true. Sinon, elle retourne false,
+      * indiquant qu'aucune ligne n'a été supprimée (par exemple, si l'ID fourni ne correspond à aucune instrumentale existante).
+      *
+      * @param Instrumental $instrumental Une instance de la classe Instrumental représentant l'instrumentale à supprimer.
+      * @return bool True si l'opération de suppression a réussi et affecté au moins une ligne, False dans le cas contraire.
+      *
+      * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit ou si la requête échoue,
+      * en fournissant un message d'erreur approprié pour le débogage. La méthode utilise `handleException`
+      * pour gérer l'exception et enregistrer les détails de l'erreur.
+    */
+    public function deleteInstrumental(Instrumental $instrumental) : bool {
+        try {
+            $db = $this->getBdd();
+            $req = "DELETE FROM instrumental WHERE id = :id";
+            
+            $stmt = $db->prepare($req);
+            $stmt->bindValue(":id", $instrumental->getId(), PDO::PARAM_INT);
+            $stmt->execute();
+
+            return $stmt->rowCount() > 0;
+
+        } catch(PDOException $e) {
+
+            $this->handleException($e, "suppression d'une instrumentale");
+        }
+    }
 }
