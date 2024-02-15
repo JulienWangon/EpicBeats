@@ -145,4 +145,43 @@ class InstrumentalRepository extends Database {
             $this->handleException($e, "Erreur lors de l'extraction des instrumentales filtrées.");
         }
     }
+
+
+    /**
+      * Ajoute une nouvelle instrumentale dans la base de données.
+      *
+      * Cette méthode prend en paramètre une instance de la classe Instrumental contenant toutes les informations
+      * nécessaires sur la nouvelle instrumentale à ajouter (titre, genre, BPM, chemin de la couverture, chemin du son,
+      * et prix). Elle construit et exécute une requête SQL INSERT pour ajouter ces informations dans la table 'instrumental'
+      * de la base de données. En cas de succès, l'ID de l'entrée insérée est retourné, permettant une référence ultérieure.
+      *
+      * @param Instrumental $instrumental Une instance de la classe Instrumental contenant les informations de l'instrumentale à ajouter.
+      * @return int L'ID de l'instrumentale ajoutée dans la base de données.
+      *
+      * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit ou si l'insertion échoue,
+      * en fournissant un message d'erreur approprié pour le débogage. La méthode utilise `handleException`
+      * pour gérer l'exception et enregistrer les détails de l'erreur.
+    */
+    public function addInstrumental(Instrumental $instrumental) :int {
+        try {
+            $db = $this->getBdd();
+            $req = "INSERT INTO instrumental (title, gender, bpm, cover, soundPath, price) VALUES (:title, :gender, :bpm, :coverPath, :soundPath, :price)";
+            $stmt = $db->prepare($req);
+
+            $stmt->bindValue(":title", $instrumental->getTitle(), PDO::PARAM_STR);
+            $stmt->bindValue(":gender", $instrumental->getGender(), PDO::PARAM_STR);
+            $stmt->bindValue(":bpm", $instrumental->getBpm(), PDO::PARAM_INT);
+            $stmt->bindValue(":coverPath", $instrumental->getCoverPath(), PDO::PARAM_STR);
+            $stmt->bindValue(":soundPath", $instrumental->getSoundPath(), PDO::PARAM_STR);
+            $stmt->bindValue(":price", $instrumental->getPrice(), PDO::PARAM_INT);
+
+            $stmt->execute();
+
+            $lastInsertId = $db->lastInsertId();
+            return $lastInsertId;
+
+        } catch (PDOException $e) {
+            $this->handleException($e, "Enregistrement d'une nouvelle instrumentale.");
+        }
+    }
 }
