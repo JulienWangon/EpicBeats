@@ -1,7 +1,7 @@
 <?php
 
-require_once './soundsphere-back/models/Database.php';
-require_once './soundsphere-back/models/Instrumental.php';
+require_once './epicbeats-back/models/Database.php';
+require_once './epicbeats-back/models/Instrumental.php';
 
 
 class InstrumentalRepository extends Database {
@@ -318,5 +318,8 @@ class InstrumentalRepository extends Database {
             return null;
         }
     }
+
+
+    
     
 }
