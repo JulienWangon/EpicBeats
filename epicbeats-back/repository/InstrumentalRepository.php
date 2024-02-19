@@ -270,4 +270,53 @@ class InstrumentalRepository extends Database {
             $this->handleException($e, "mise à jour d'une instrumentale");
         }
     }
+
+
+    /**
+      * Retrouve une instrumentale par son ID et retourne une instance de celle-ci.
+      *
+      * Cette méthode recherche dans la base de données une instrumentale correspondant à l'ID fourni.
+      * Si une correspondance est trouvée, elle crée et retourne une nouvelle instance de la classe Instrumental
+      * avec les données récupérées. Cela inclut le titre, le genre, le BPM, le chemin de la couverture, le chemin
+      * du fichier sonore, le prix, et l'ID de l'instrumentale. Si aucune instrumentale correspondante n'est trouvée,
+      * ou si une erreur survient lors de la recherche, la méthode retourne null.
+      *
+      * @param int $id L'ID de l'instrumentale à rechercher dans la base de données.
+      * @return Instrumental|null Une instance de Instrumental si une correspondance est trouvée, null sinon.
+      *
+      * @throws Exception Propage une exception si une erreur de connexion à la base de données se produit,
+      * en fournissant un message d'erreur approprié pour le débogage. La méthode utilise `handleException`
+      * pour gérer l'exception et enregistrer les détails de l'erreur.
+    */
+    public function findInstrumentalById($id): ?Instrumental {
+        try {
+            $db = $this->getBdd();
+            $req = "SELECT * FROM instrumental WHERE id = :id";
+            $stmt = $db->prepare($req);
+            $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+            $stmt->execute();
+
+            $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($data) {
+                // Créez une instance de Instrumental en passant les valeurs individuellement
+                return new Instrumental(
+                    $data['title'],
+                    $data['gender'],
+                    $data['bpm'],
+                    $data['cover'],
+                    $data['soundPath'],
+                    $data['price'],
+                    $data['id'] ?? null // Passez l'ID comme dernier argument, en utilisant l'opérateur null coalescent au cas où 'id' n'est pas défini
+                );
+            } else {
+                return null;
+            }
+
+        } catch (PDOException $e) {
+            $this->handleException($e, "recherche d'une instrumentale par son id.");
+            return null;
+        }
+    }
+    
 }
